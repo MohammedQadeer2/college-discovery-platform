@@ -1,69 +1,329 @@
-import Image from "next/image";
+"use client";
 
+// React hooks used to store data and react to changes.
+import { useEffect, useState } from "react";
+
+// Next.js Link lets us navigate to the college details page.
+import Link from "next/link";
+
+// This describes the information we receive from our API.
+type College = {
+  id: string;
+  name: string;
+  location: string;
+  state: string;
+  description: string;
+  fees: number;
+  rating: number;
+  placement: number;
+  courses: {
+    id: string;
+    name: string;
+    duration: string;
+  }[];
+};
+
+// This is the main home page component.
 export default function Home() {
+  // Store the colleges returned by our API.
+  const [colleges, setColleges] = useState<College[]>([]);
+
+  // Store the search text entered by the user.
+  const [search, setSearch] = useState("");
+
+  // Store the selected location.
+  const [location, setLocation] = useState("");
+
+  // Show a loading message while the API request is running.
+  const [loading, setLoading] = useState(true);
+
+  // Store an error message if the API fails.
+  const [error, setError] = useState("");
+
+  // Fetch colleges from our backend API.
+  async function fetchColleges() {
+    try {
+      // Show loading state before starting the request.
+      setLoading(true);
+
+      // Clear any previous error.
+      setError("");
+
+      // Create the API URL.
+      const params = new URLSearchParams();
+
+      // Add search only when the user entered something.
+      if (search.trim()) {
+        params.set("search", search.trim());
+      }
+
+      // Add location only when one is selected.
+      if (location) {
+        params.set("location", location);
+      }
+
+      // Ask our Next.js API for colleges.
+      const response = await fetch(
+        `/api/colleges?${params.toString()}`
+      );
+
+      // Convert the response from JSON into JavaScript.
+      const result = await response.json();
+
+      // Check whether our API returned success.
+      if (!result.success) {
+        throw new Error(result.message || "Failed to fetch colleges");
+      }
+
+      // Store the colleges in React state.
+      setColleges(result.data);
+    } catch (err) {
+      // Show a friendly error message to the user.
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong"
+      );
+    } finally {
+      // Stop showing the loading state.
+      setLoading(false);
+    }
+  }
+
+  // Fetch colleges when the page first loads.
+  useEffect(() => {
+    fetchColleges();
+  }, []);
+
+  // Convert the numeric fee into Indian currency format.
+  function formatCurrency(value: number) {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(value);
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="min-h-screen bg-slate-950 text-white">
+      {/* ================= HEADER ================= */}
+      <header className="border-b border-slate-800 bg-slate-950/95">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+          {/* Website name */}
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">
+              College<span className="text-blue-400">Finder</span>
+            </h1>
+
+            <p className="text-sm text-slate-400">
+              Discover the right college for you
+            </p>
+          </div>
+
+          {/* Navigation */}
+          <nav className="hidden gap-6 text-sm text-slate-300 md:flex">
+            <a href="#" className="hover:text-white">
+              Colleges
+            </a>
+
+            <a href="#" className="hover:text-white">
+              Compare
+            </a>
+
+            <a href="#" className="hover:text-white">
+              Saved
+            </a>
+          </nav>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </header>
+
+      {/* ================= HERO ================= */}
+      <section className="border-b border-slate-800 bg-gradient-to-b from-blue-950/40 to-slate-950">
+        <div className="mx-auto max-w-7xl px-6 py-16">
+          <div className="max-w-3xl">
+            <p className="mb-3 text-sm font-semibold uppercase tracking-wider text-blue-400">
+              College Discovery Platform
+            </p>
+
+            <h2 className="text-4xl font-bold leading-tight md:text-6xl">
+              Find a college that
+              <span className="text-blue-400"> fits your future.</span>
+            </h2>
+
+            <p className="mt-5 max-w-2xl text-lg text-slate-400">
+              Search colleges, compare fees and placements,
+              explore courses, and make better decisions.
+            </p>
+          </div>
+
+          {/* ================= SEARCH BOX ================= */}
+          <div className="mt-10 rounded-2xl border border-slate-700 bg-slate-900 p-4 shadow-2xl">
+            <div className="grid gap-3 md:grid-cols-[1fr_220px_auto]">
+              {/* Search input */}
+              <input
+                type="text"
+                placeholder="Search college, city or state..."
+                value={search}
+                onChange={(event) =>
+                  setSearch(event.target.value)
+                }
+                onKeyDown={(event) => {
+                  // Allow the user to press Enter to search.
+                  if (event.key === "Enter") {
+                    fetchColleges();
+                  }
+                }}
+                className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none placeholder:text-slate-500 focus:border-blue-500"
+              />
+
+              {/* Location filter */}
+              <select
+                value={location}
+                onChange={(event) => {
+                  setLocation(event.target.value);
+                }}
+                className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-blue-500"
+              >
+                <option value="">All locations</option>
+                <option value="Hyderabad">Hyderabad</option>
+                <option value="Mumbai">Mumbai</option>
+                <option value="New Delhi">New Delhi</option>
+                <option value="Chennai">Chennai</option>
+                <option value="Vellore">Vellore</option>
+                <option value="Pilani">Pilani</option>
+                <option value="Warangal">Warangal</option>
+              </select>
+
+              {/* Search button */}
+              <button
+                onClick={fetchColleges}
+                className="rounded-xl bg-blue-600 px-7 py-3 font-semibold transition hover:bg-blue-500"
+              >
+                Search
+              </button>
+            </div>
+          </div>
         </div>
-      </main>
-    </div>
+      </section>
+
+      {/* ================= COLLEGE SECTION ================= */}
+      <section className="mx-auto max-w-7xl px-6 py-12">
+        <div className="mb-8 flex items-end justify-between">
+          <div>
+            <h3 className="text-2xl font-bold">
+              Explore Colleges
+            </h3>
+
+            <p className="mt-1 text-slate-400">
+              Colleges fetched directly from our database
+            </p>
+          </div>
+
+          {/* Number of colleges currently displayed */}
+          <span className="text-sm text-slate-500">
+            {colleges.length} results
+          </span>
+        </div>
+
+        {/* Loading state */}
+        {loading && (
+          <div className="py-20 text-center text-slate-400">
+            Loading colleges...
+          </div>
+        )}
+
+        {/* Error state */}
+        {!loading && error && (
+          <div className="rounded-xl border border-red-900 bg-red-950/30 p-6 text-red-300">
+            {error}
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!loading && !error && colleges.length === 0 && (
+          <div className="rounded-xl border border-slate-800 bg-slate-900 p-10 text-center">
+            <h4 className="text-xl font-semibold">
+              No colleges found
+            </h4>
+
+            <p className="mt-2 text-slate-400">
+              Try a different search or location.
+            </p>
+          </div>
+        )}
+
+        {/* College cards */}
+        {!loading && !error && colleges.length > 0 && (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {colleges.map((college) => (
+              <article
+                key={college.id}
+                className="group rounded-2xl border border-slate-800 bg-slate-900 p-6 transition hover:-translate-y-1 hover:border-blue-500/50 hover:bg-slate-900/80"
+              >
+                {/* College name */}
+                <div className="flex items-start justify-between gap-4">
+                  <h4 className="text-xl font-bold">
+                    {college.name}
+                  </h4>
+
+                  {/* Rating */}
+                  <span className="rounded-lg bg-yellow-400/10 px-2 py-1 text-sm text-yellow-400">
+                    ★ {college.rating}
+                  </span>
+                </div>
+
+                {/* Location */}
+                <p className="mt-2 text-sm text-slate-400">
+                  📍 {college.location}, {college.state}
+                </p>
+
+                {/* Description */}
+                <p className="mt-4 line-clamp-2 text-sm leading-6 text-slate-400">
+                  {college.description}
+                </p>
+
+                {/* Important college information */}
+                <div className="mt-6 grid grid-cols-2 gap-3">
+                  <div className="rounded-xl bg-slate-950 p-3">
+                    <p className="text-xs text-slate-500">
+                      Annual Fees
+                    </p>
+
+                    <p className="mt-1 font-semibold">
+                      {formatCurrency(college.fees)}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl bg-slate-950 p-3">
+                    <p className="text-xs text-slate-500">
+                      Avg. Placement
+                    </p>
+
+                    <p className="mt-1 font-semibold">
+                      {formatCurrency(college.placement)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Course count */}
+                <p className="mt-4 text-sm text-slate-500">
+                  {college.courses.length} courses available
+                </p>
+
+                {/* Actions */}
+                <div className="mt-6">
+                  <Link
+                    href={`/colleges/${college.id}`}
+                    className="block rounded-xl bg-blue-600 px-4 py-3 text-center font-semibold transition hover:bg-blue-500"
+                  >
+                    View Details
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+    </main>
   );
 }

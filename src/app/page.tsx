@@ -28,6 +28,12 @@ export default function Home() {
   // Store the colleges returned by our API.
   const [colleges, setColleges] = useState<College[]>([]);
 
+  // Store the current page number.
+  const [page, setPage] = useState(1);
+
+  // Store the total number of pages returned by the API.
+  const [totalPages, setTotalPages] = useState(1);
+
   // Store the search text entered by the user.
   const [search, setSearch] = useState("");
 
@@ -40,17 +46,23 @@ export default function Home() {
   // Store an error message if the API fails.
   const [error, setError] = useState("");
 
+
+
   // Fetch colleges from our backend API.
   async function fetchColleges() {
     try {
-      // Show loading state before starting the request.
       setLoading(true);
 
-      // Clear any previous error.
       setError("");
 
-      // Create the API URL.
+      // Create the query parameters for our API request.
       const params = new URLSearchParams();
+
+      // Send the current page to the backend.
+      params.set("page", String(page));
+
+      // Keep the number of colleges per page fixed.
+      params.set("limit", "6");
 
       // Add search only when the user entered something.
       if (search.trim()) {
@@ -70,13 +82,14 @@ export default function Home() {
       // Convert the response from JSON into JavaScript.
       const result = await response.json();
 
-      // Check whether our API returned success.
       if (!result.success) {
         throw new Error(result.message || "Failed to fetch colleges");
       }
 
-      // Store the colleges in React state.
       setColleges(result.data);
+
+      // Store the total number of pages.
+      setTotalPages(result.pagination.totalPages);
     } catch (err) {
       // Show a friendly error message to the user.
       setError(
@@ -90,10 +103,10 @@ export default function Home() {
     }
   }
 
-  // Fetch colleges when the page first loads.
+  // Fetch colleges whenever the page number changes.
   useEffect(() => {
     fetchColleges();
-  }, []);
+  }, [page])
 
   // Convert the numeric fee into Indian currency format.
   function formatCurrency(value: number) {
@@ -170,6 +183,10 @@ export default function Home() {
                 onKeyDown={(event) => {
                   // Allow the user to press Enter to search.
                   if (event.key === "Enter") {
+                    // Start the search from page 1.
+                    setPage(1);
+
+                    // Fetch the filtered results.
                     fetchColleges();
                   }
                 }}
@@ -196,9 +213,13 @@ export default function Home() {
 
               {/* Search button */}
               <button
-                onClick={fetchColleges}
-                className="rounded-xl bg-blue-600 px-7 py-3 font-semibold transition hover:bg-blue-500"
-              >
+                onClick={() => {
+                  // Start search results from the first page.
+                  setPage(1);
+
+                  // Fetch the filtered colleges.
+                  fetchColleges();
+                }}>
                 Search
               </button>
             </div>
@@ -323,7 +344,45 @@ export default function Home() {
             ))}
           </div>
         )}
+
+        {/* ================= PAGINATION ================= */}
+
+        {!loading && !error && colleges.length > 0 && totalPages > 1 && (
+          <div className="mt-10 flex items-center justify-center gap-3">
+
+            {/* Previous page button */}
+            <button
+              onClick={() => {
+                // Move to the previous page.
+                setPage((currentPage) => currentPage - 1);
+              }}
+              disabled={page === 1}
+              className="rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold transition hover:border-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              ← Previous
+            </button>
+
+            {/* Current page indicator */}
+            <div className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold">
+              Page {page} of {totalPages}
+            </div>
+
+            {/* Next page button */}
+            <button
+              onClick={() => {
+                // Move to the next page.
+                setPage((currentPage) => currentPage + 1);
+              }}
+              disabled={page === totalPages}
+              className="rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold transition hover:border-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Next →
+            </button>
+          </div>
+        )}
+
+        
       </section>
-    </main>
+    </main >
   );
 }

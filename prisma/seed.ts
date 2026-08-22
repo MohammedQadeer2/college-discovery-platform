@@ -145,6 +145,134 @@ const colleges = [
       { name: "Electrical Engineering", duration: "4 Years" },
     ],
   },
+  {
+    name: "IIT Kanpur",
+    slug: "iit-kanpur",
+    location: "Kanpur",
+    state: "Uttar Pradesh",
+    description:
+      "A leading technology institute known for engineering, science and research programs.",
+    fees: 230000,
+    rating: 4.8,
+    placement: 2100000,
+    courses: [
+      { name: "Computer Science and Engineering", duration: "4 Years" },
+      { name: "Aerospace Engineering", duration: "4 Years" },
+      { name: "Chemical Engineering", duration: "4 Years" },
+    ],
+  },
+  {
+    name: "IIT Kharagpur",
+    slug: "iit-kharagpur",
+    location: "Kharagpur",
+    state: "West Bengal",
+    description:
+      "A historic institute offering a broad range of engineering and technology programs.",
+    fees: 235000,
+    rating: 4.7,
+    placement: 2000000,
+    courses: [
+      { name: "Computer Science and Engineering", duration: "4 Years" },
+      { name: "Electrical Engineering", duration: "4 Years" },
+      { name: "Civil Engineering", duration: "4 Years" },
+    ],
+  },
+  {
+    name: "IIT Roorkee",
+    slug: "iit-roorkee",
+    location: "Roorkee",
+    state: "Uttarakhand",
+    description:
+      "One of India's oldest technical institutions with strong engineering and research programs.",
+    fees: 225000,
+    rating: 4.6,
+    placement: 1900000,
+    courses: [
+      { name: "Computer Science and Engineering", duration: "4 Years" },
+      { name: "Electronics and Communication", duration: "4 Years" },
+      { name: "Architecture", duration: "5 Years" },
+    ],
+  },
+  {
+    name: "NIT Trichy",
+    slug: "nit-trichy",
+    location: "Tiruchirappalli",
+    state: "Tamil Nadu",
+    description:
+      "A respected national institute offering practical engineering and technology education.",
+    fees: 145000,
+    rating: 4.5,
+    placement: 1100000,
+    courses: [
+      { name: "Computer Science and Engineering", duration: "4 Years" },
+      { name: "Electronics and Communication", duration: "4 Years" },
+      { name: "Production Engineering", duration: "4 Years" },
+    ],
+  },
+  {
+    name: "IIM Bangalore",
+    slug: "iim-bangalore",
+    location: "Bengaluru",
+    state: "Karnataka",
+    description:
+      "A leading management institute offering business, leadership and entrepreneurship programs.",
+    fees: 1250000,
+    rating: 4.8,
+    placement: 3500000,
+    courses: [
+      { name: "Business Administration", duration: "2 Years" },
+      { name: "Management Studies", duration: "2 Years" },
+      { name: "Business Analytics", duration: "1 Year" },
+    ],
+  },
+  {
+    name: "Manipal Institute of Technology",
+    slug: "manipal-institute-of-technology",
+    location: "Manipal",
+    state: "Karnataka",
+    description:
+      "A private engineering institute with modern facilities and diverse technology programs.",
+    fees: 420000,
+    rating: 4.3,
+    placement: 850000,
+    courses: [
+      { name: "Computer Science and Engineering", duration: "4 Years" },
+      { name: "Information Technology", duration: "4 Years" },
+      { name: "Biomedical Engineering", duration: "4 Years" },
+    ],
+  },
+  {
+    name: "Anna University",
+    slug: "anna-university",
+    location: "Chennai",
+    state: "Tamil Nadu",
+    description:
+      "A public university offering engineering, technology and applied science programs.",
+    fees: 70000,
+    rating: 4.4,
+    placement: 750000,
+    courses: [
+      { name: "Computer Science and Engineering", duration: "4 Years" },
+      { name: "Information Technology", duration: "4 Years" },
+      { name: "Civil Engineering", duration: "4 Years" },
+    ],
+  },
+  {
+    name: "Delhi Technological University",
+    slug: "delhi-technological-university",
+    location: "New Delhi",
+    state: "Delhi",
+    description:
+      "A well-known technical university focused on engineering, innovation and technology.",
+    fees: 180000,
+    rating: 4.4,
+    placement: 1000000,
+    courses: [
+      { name: "Computer Science and Engineering", duration: "4 Years" },
+      { name: "Software Engineering", duration: "4 Years" },
+      { name: "Environmental Engineering", duration: "4 Years" },
+    ],
+  },
 ];
 
 async function main() {

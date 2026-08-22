@@ -43,6 +43,15 @@ export default function CollegeDetailsPage() {
   // Store an error message if something goes wrong.
   const [error, setError] = useState("");
 
+  // Track whether this college is saved by the logged-in user.
+  const [isSaved, setIsSaved] = useState(false);
+
+  // Track whether this college is selected for comparison.
+  const [isCompared, setIsCompared] = useState(false);
+
+  // Show messages for save and compare actions.
+  const [actionMessage, setActionMessage] = useState("");
+
   useEffect(() => {
     // Get the ID from the URL parameters.
     const collegeId = params.id;
@@ -53,6 +62,9 @@ export default function CollegeDetailsPage() {
       setLoading(false);
       return;
     }
+
+    // Keep the validated ID available inside the async function below.
+    const validCollegeId = collegeId;
 
     // Function responsible for loading the college.
     async function fetchCollege() {
@@ -65,7 +77,7 @@ export default function CollegeDetailsPage() {
 
         // Call the college detail API we already created.
         const response = await fetch(
-          `/api/colleges/${collegeId}`
+          `/api/colleges/${validCollegeId}`
         );
 
         // Convert API response to JavaScript.
@@ -80,6 +92,30 @@ export default function CollegeDetailsPage() {
 
         // Store the college in React state.
         setCollege(result.data);
+
+        // Check the saved-college API to show the correct button label.
+        const savedResponse = await fetch("/api/saved-colleges");
+        const savedResult = await savedResponse.json();
+
+        if (savedResult.success) {
+          setIsSaved(
+            savedResult.data.some(
+              (savedCollege: College) => savedCollege.id === validCollegeId
+            )
+          );
+        }
+
+        // Read the comparison selection saved in this browser.
+        const storedCompareIds = localStorage.getItem("compareCollegeIds");
+
+        if (storedCompareIds) {
+          try {
+            const compareIds: string[] = JSON.parse(storedCompareIds);
+            setIsCompared(compareIds.includes(validCollegeId));
+          } catch {
+            localStorage.removeItem("compareCollegeIds");
+          }
+        }
       } catch (err) {
         // Show a friendly error message.
         setError(
@@ -104,6 +140,67 @@ export default function CollegeDetailsPage() {
       currency: "INR",
       maximumFractionDigits: 0,
     }).format(value);
+  }
+
+  // Save or remove this college for the logged-in user.
+  async function handleSave() {
+    setActionMessage("");
+
+    const response = await fetch(
+      isSaved ? `/api/saved-colleges/${college?.id}` : "/api/saved-colleges",
+      {
+        method: isSaved ? "DELETE" : "POST",
+        headers: isSaved
+          ? undefined
+          : { "Content-Type": "application/json" },
+        body: isSaved
+          ? undefined
+          : JSON.stringify({ collegeId: college?.id }),
+      }
+    );
+    const result = await response.json();
+
+    if (response.status === 401) {
+      router.push("/login");
+      return;
+    }
+
+    if (!result.success) {
+      setActionMessage(result.message || "Failed to update saved college");
+      return;
+    }
+
+    setIsSaved(!isSaved);
+    setActionMessage(isSaved ? "College removed from saved." : "College saved.");
+  }
+
+  // Add or remove this college from the browser's comparison list.
+  function handleCompare() {
+    if (!college) {
+      return;
+    }
+
+    const storedCompareIds = localStorage.getItem("compareCollegeIds");
+    let compareIds: string[] = storedCompareIds
+      ? JSON.parse(storedCompareIds)
+      : [];
+
+    if (isCompared) {
+      compareIds = compareIds.filter((id) => id !== college.id);
+      setIsCompared(false);
+      setActionMessage("College removed from comparison.");
+    } else {
+      if (compareIds.length >= 3) {
+        setActionMessage("You can compare a maximum of 3 colleges.");
+        return;
+      }
+
+      compareIds = [...compareIds, college.id];
+      setIsCompared(true);
+      setActionMessage("College added for comparison.");
+    }
+
+    localStorage.setItem("compareCollegeIds", JSON.stringify(compareIds));
   }
 
   // ================= LOADING STATE =================
@@ -293,23 +390,35 @@ export default function CollegeDetailsPage() {
               </p>
             </div>
 
-            {/* Future action buttons */}
+            {/* Save and compare actions */}
             <div className="rounded-2xl border border-blue-900/50 bg-blue-950/20 p-6">
               <h3 className="font-semibold">
                 Interested in this college?
               </h3>
 
               <p className="mt-2 text-sm text-slate-400">
-                You will soon be able to save colleges
-                and compare them.
+                Save this college or add it to your comparison list.
               </p>
 
               <button
-                disabled
-                className="mt-5 w-full cursor-not-allowed rounded-xl bg-slate-700 px-4 py-3 text-sm font-semibold text-slate-400"
+                onClick={handleSave}
+                className="mt-5 w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold hover:bg-blue-500"
               >
-                Save College — Coming Soon
+                {isSaved ? "Remove Saved College" : "Save College"}
               </button>
+
+              <button
+                onClick={handleCompare}
+                className="mt-3 w-full rounded-xl border border-slate-700 px-4 py-3 text-sm font-semibold text-slate-200 hover:border-blue-500 hover:text-white"
+              >
+                {isCompared ? "Remove from Compare" : "Compare College"}
+              </button>
+
+              {actionMessage && (
+                <p className="mt-3 text-sm text-blue-300">
+                  {actionMessage}
+                </p>
+              )}
             </div>
           </aside>
         </div>

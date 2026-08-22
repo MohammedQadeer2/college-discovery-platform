@@ -66,6 +66,12 @@ export default function Home() {
   // Store the IDs of colleges saved by the current user.
   const [savedCollegeIds, setSavedCollegeIds] = useState<string[]>([]);
 
+  // Store the IDs selected for comparison in this browser.
+  const [compareCollegeIds, setCompareCollegeIds] = useState<string[]>([]);
+
+  // Show a message when the comparison limit is reached.
+  const [compareMessage, setCompareMessage] = useState("");
+
   // Create the router object for page navigation.
   const router = useRouter();
 
@@ -193,6 +199,24 @@ export default function Home() {
     );
   }
 
+  // Add a college to the browser's comparison list.
+  function handleCompare(collegeId: string) {
+    if (compareCollegeIds.includes(collegeId)) {
+      setCompareMessage("This college is already selected.");
+      return;
+    }
+
+    if (compareCollegeIds.length >= 3) {
+      setCompareMessage("You can compare a maximum of 3 colleges.");
+      return;
+    }
+
+    const updatedIds = [...compareCollegeIds, collegeId];
+    setCompareCollegeIds(updatedIds);
+    localStorage.setItem("compareCollegeIds", JSON.stringify(updatedIds));
+    setCompareMessage("College added for comparison.");
+  }
+
   // Log the current user out of the application.
   async function handleLogout() {
     try {
@@ -219,6 +243,23 @@ export default function Home() {
     checkAuthentication();
   }, []);
 
+  // Load comparison selections saved in this browser.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const storedIds = localStorage.getItem("compareCollegeIds");
+
+      if (storedIds) {
+        try {
+          setCompareCollegeIds(JSON.parse(storedIds));
+        } catch {
+          localStorage.removeItem("compareCollegeIds");
+        }
+      }
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   // Fetch colleges whenever the page number changes.
   useEffect(() => {
     fetchColleges();
@@ -237,7 +278,7 @@ export default function Home() {
     <main className="min-h-screen bg-slate-950 text-white">
       {/* ================= HEADER ================= */}
       <header className="border-b border-slate-800 bg-slate-950/95">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
           {/* Website name */}
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
@@ -250,17 +291,17 @@ export default function Home() {
           </div>
 
           {/* Navigation */}
-          <nav className="hidden items-center gap-6 text-sm text-slate-300 md:flex">
+          <nav className="flex flex-wrap items-center justify-center gap-4 text-sm text-slate-300 sm:gap-6">
 
             {/* Link to the colleges/home page */}
             <Link href="/" className="hover:text-white">
               Colleges
             </Link>
 
-            {/* Compare page will be implemented later */}
-            <a href="#" className="hover:text-white">
+            {/* Link to the comparison page */}
+            <Link href="/compare" className="hover:text-white">
               Compare
-            </a>
+            </Link>
 
             {/* Link to the saved colleges page */}
             <Link href="/saved" className="hover:text-white">
@@ -495,6 +536,15 @@ export default function Home() {
                 {/* Actions */}
                 <div className="mt-6">
                   <button
+                    onClick={() => handleCompare(college.id)}
+                    className="mb-3 w-full rounded-xl border border-slate-700 px-4 py-3 text-center font-semibold transition hover:border-blue-500 hover:text-blue-300"
+                  >
+                    {compareCollegeIds.includes(college.id)
+                      ? "Compared"
+                      : "Compare"}
+                  </button>
+
+                  <button
                     onClick={() => handleSave(college.id)}
                     className="mb-3 w-full rounded-xl border border-slate-700 px-4 py-3 text-center font-semibold transition hover:border-blue-500 hover:text-blue-300"
                   >
@@ -511,6 +561,12 @@ export default function Home() {
               </article>
             ))}
           </div>
+        )}
+
+        {compareMessage && (
+          <p className="mt-6 text-center text-sm text-blue-300">
+            {compareMessage}
+          </p>
         )}
 
         {/* ================= PAGINATION ================= */}

@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     //
     // HTTP-only means JavaScript running in the browser
     // cannot directly read the authentication token.
-    response.cookies.set("auth_token", token, {
+    response.cookies.set("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",

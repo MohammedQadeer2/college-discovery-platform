@@ -1,36 +1,121 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CollegeFinder
 
-## Getting Started
+CollegeFinder is a college discovery platform built with Next.js, TypeScript, Prisma, and PostgreSQL.
 
-First, run the development server:
+Users can search colleges, filter by location, view college details, save colleges, and compare up to three colleges.
+
+## Features
+
+- College listing with search, location filtering, and pagination
+- College details and course information
+- User registration and login
+- Cookie-based authentication
+- Save and remove colleges
+- Compare up to three colleges using browser localStorage
+- Responsive dark user interface
+
+## Technologies
+
+- Next.js App Router
+- TypeScript and React
+- Prisma ORM
+- PostgreSQL
+- Tailwind CSS
+- JWT authentication with `jose`
+
+## Requirements
+
+- Node.js 20 or newer
+- PostgreSQL
+- npm
+
+## Installation
+
+```bash
+git clone https://github.com/MohammedQadeer2/college-discovery-platform.git
+cd college-discovery-platform
+npm install
+```
+
+## Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+DATABASE_URL="your-postgresql-connection-string"
+JWT_SECRET="your-secret-key"
+```
+
+Do not commit `.env` to GitHub.
+
+## Database Setup
+
+Apply migrations and insert sample college data:
+
+```bash
+npx prisma migrate deploy
+npx prisma db seed
+```
+
+The seed script recreates the college data and removes existing college and saved-college records before inserting sample data.
+
+## Run Locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Available Pages
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Route | Description |
+| --- | --- |
+| `/` | Browse and search colleges |
+| `/colleges/[id]` | View college details |
+| `/login` | Log in |
+| `/register` | Create an account |
+| `/saved` | View saved colleges |
+| `/compare` | Compare selected colleges |
 
-## Learn More
+## API Routes
 
-To learn more about Next.js, take a look at the following resources:
+| Method | Route | Description |
+| --- | --- | --- |
+| `GET` | `/api/colleges` | List and filter colleges |
+| `GET` | `/api/colleges/[id]` | Get one college |
+| `POST` | `/api/auth/register` | Create an account |
+| `POST` | `/api/auth/login` | Log in |
+| `GET` | `/api/auth/me` | Get the current user |
+| `POST` | `/api/auth/logout` | Log out |
+| `GET` | `/api/saved-colleges` | List saved colleges |
+| `POST` | `/api/saved-colleges` | Save a college |
+| `DELETE` | `/api/saved-colleges/[collegeId]` | Remove a saved college |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Production Build
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run build
+npm run start
+```
+
+The build command generates the Prisma client before building Next.js.
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Push the project to GitHub.
+2. Import the repository into Vercel.
+3. Add `DATABASE_URL` and `JWT_SECRET` in Vercel project settings.
+4. Deploy or redeploy the project.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Use a hosted PostgreSQL database such as Neon or Supabase. Do not use a `localhost` database URL in Vercel.
+
+## Useful Commands
+
+```bash
+npm run dev          # Start development server
+npm run build        # Generate Prisma client and build the app
+npm run start        # Start production server
+npx prisma validate  # Validate the Prisma schema
+npx prisma db seed   # Insert sample college data
+```

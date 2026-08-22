@@ -57,27 +57,39 @@ export default function ComparePage() {
       async function fetchComparedColleges() {
         try {
           const storedIds = localStorage.getItem("compareCollegeIds");
-          const collegeIds: string[] = storedIds ? JSON.parse(storedIds) : [];
+          let collegeIds: string[] = [];
+
+          try {
+            const parsedIds = storedIds ? JSON.parse(storedIds) : [];
+            collegeIds = Array.isArray(parsedIds)
+              ? parsedIds.filter((id): id is string => typeof id === "string")
+              : [];
+          } catch {
+            localStorage.removeItem("compareCollegeIds");
+          }
 
           if (collegeIds.length === 0) {
             setLoading(false);
             return;
           }
 
-          const responses = await Promise.all(
-            collegeIds.map((collegeId) =>
-              fetch(`/api/colleges/${collegeId}`)
-            )
-          );
           const results = await Promise.all(
-            responses.map((response) => response.json())
+            collegeIds.map(async (collegeId) => {
+              const response = await fetch(`/api/colleges/${collegeId}`);
+              const result = await response.json();
+
+              return result.success ? result.data : null;
+            })
           );
 
-          setColleges(
-            results
-              .filter((result) => result.success)
-              .map((result) => result.data)
+          const validColleges = results.filter(
+            (college): college is College => college !== null
           );
+          const validIds = validColleges.map((college) => college.id);
+
+          // Remove IDs for colleges that no longer exist after reseeding.
+          localStorage.setItem("compareCollegeIds", JSON.stringify(validIds));
+          setColleges(validColleges);
         } catch (err) {
           setError(
             err instanceof Error

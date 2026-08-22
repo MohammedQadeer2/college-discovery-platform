@@ -181,9 +181,16 @@ export default function CollegeDetailsPage() {
     }
 
     const storedCompareIds = localStorage.getItem("compareCollegeIds");
-    let compareIds: string[] = storedCompareIds
-      ? JSON.parse(storedCompareIds)
-      : [];
+    let compareIds: string[] = [];
+
+    try {
+      const parsedIds = storedCompareIds ? JSON.parse(storedCompareIds) : [];
+      compareIds = Array.isArray(parsedIds)
+        ? parsedIds.filter((id): id is string => typeof id === "string")
+        : [];
+    } catch {
+      localStorage.removeItem("compareCollegeIds");
+    }
 
     if (isCompared) {
       compareIds = compareIds.filter((id) => id !== college.id);

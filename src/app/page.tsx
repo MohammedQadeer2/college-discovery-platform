@@ -6,6 +6,9 @@ import { useEffect, useState } from "react";
 // Next.js Link lets us navigate to the college details page.
 import Link from "next/link";
 
+// Router lets us send logged-out users to the login page.
+import { useRouter } from "next/navigation";
+
 // This describes the information we receive from our API.
 type College = {
   id: string;
@@ -21,6 +24,13 @@ type College = {
     name: string;
     duration: string;
   }[];
+};
+
+// This describes the logged-in user returned by our authentication API.
+type User = {
+  id: string;
+  name: string;
+  email: string;
 };
 
 // This is the main home page component.
@@ -46,6 +56,18 @@ export default function Home() {
   // Store an error message if the API fails.
   const [error, setError] = useState("");
 
+  // Store the currently logged-in user.
+  // If the user is not logged in, this will be null.
+  const [user, setUser] = useState<User | null>(null);
+
+  // Track whether we are checking the user's login status.
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  // Store the IDs of colleges saved by the current user.
+  const [savedCollegeIds, setSavedCollegeIds] = useState<string[]>([]);
+
+  // Create the router object for page navigation.
+  const router = useRouter();
 
 
   // Fetch colleges from our backend API.
@@ -103,6 +125,100 @@ export default function Home() {
     }
   }
 
+  // Check whether the user is already logged in.
+  async function checkAuthentication() {
+    try {
+      // Ask our authentication API for the current user.
+      const response = await fetch("/api/auth/me");
+
+      // Convert the response into JavaScript data.
+      const result = await response.json();
+
+      // If authentication is successful, store the user.
+      if (result.success) {
+        setUser(result.data);
+        await fetchSavedCollegeIds();
+      } else {
+        // If the user is not authenticated, keep user as null.
+        setUser(null);
+      }
+    } catch (error) {
+      // If something goes wrong, treat the user as logged out.
+      setUser(null);
+    } finally {
+      // Authentication checking is finished.
+      setCheckingAuth(false);
+    }
+  }
+
+  // Fetch saved IDs so each homepage card can show Save or Saved.
+  async function fetchSavedCollegeIds() {
+    const response = await fetch("/api/saved-colleges");
+    const result = await response.json();
+
+    if (result.success) {
+      setSavedCollegeIds(result.data.map((college: College) => college.id));
+    }
+  }
+
+  // Save or remove a college for the logged-in user.
+  async function handleSave(collegeId: string) {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    const isSaved = savedCollegeIds.includes(collegeId);
+    const response = await fetch(
+      isSaved ? `/api/saved-colleges/${collegeId}` : "/api/saved-colleges",
+      {
+        method: isSaved ? "DELETE" : "POST",
+        headers: isSaved
+          ? undefined
+          : { "Content-Type": "application/json" },
+        body: isSaved ? undefined : JSON.stringify({ collegeId }),
+      }
+    );
+    const result = await response.json();
+
+    if (!result.success) {
+      setError(result.message || "Failed to update saved college");
+      return;
+    }
+
+    setSavedCollegeIds((currentIds) =>
+      isSaved
+        ? currentIds.filter((id) => id !== collegeId)
+        : [...currentIds, collegeId]
+    );
+  }
+
+  // Log the current user out of the application.
+  async function handleLogout() {
+    try {
+      // Send a request to our logout API.
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+      });
+
+      // Convert the API response into JavaScript data.
+      const result = await response.json();
+
+      // If logout was successful, remove the user from the UI.
+      if (result.success) {
+        setUser(null);
+      }
+    } catch (error) {
+      // Show the error in the browser console if logout fails.
+      console.error("Logout failed:", error);
+    }
+  }
+
+  // Check authentication when the homepage first loads.
+  useEffect(() => {
+    checkAuthentication();
+  }, []);
+
   // Fetch colleges whenever the page number changes.
   useEffect(() => {
     fetchColleges();
@@ -134,18 +250,63 @@ export default function Home() {
           </div>
 
           {/* Navigation */}
-          <nav className="hidden gap-6 text-sm text-slate-300 md:flex">
-            <a href="#" className="hover:text-white">
-              Colleges
-            </a>
+          <nav className="hidden items-center gap-6 text-sm text-slate-300 md:flex">
 
+            {/* Link to the colleges/home page */}
+            <Link href="/" className="hover:text-white">
+              Colleges
+            </Link>
+
+            {/* Compare page will be implemented later */}
             <a href="#" className="hover:text-white">
               Compare
             </a>
 
-            <a href="#" className="hover:text-white">
+            {/* Link to the saved colleges page */}
+            <Link href="/saved" className="hover:text-white">
               Saved
-            </a>
+            </Link>
+
+            {/* Show different options depending on login status */}
+            {!checkingAuth && (
+              <>
+                {user ? (
+                  <>
+                    {/* Display the logged-in user's name */}
+                    <span className="text-blue-400">
+                      Hi, {user.name}
+                    </span>
+
+                    {/* Logout button */}
+                    <button
+                      onClick={handleLogout}
+                      className="rounded-lg border border-slate-700 px-4 py-2 transition hover:border-blue-500 hover:text-white"
+                    >
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {/* Login link for logged-out users */}
+                    <Link
+                      href="/login"
+                      className="hover:text-white"
+                    >
+                      Login
+                    </Link>
+
+                    {/* Register link for logged-out users */}
+                    <Link
+                      href="/register"
+                      className="rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-500"
+                    >
+                      Register
+                    </Link>
+                  </>
+                )}
+              </>
+            )}
+
           </nav>
         </div>
       </header>
@@ -333,6 +494,13 @@ export default function Home() {
 
                 {/* Actions */}
                 <div className="mt-6">
+                  <button
+                    onClick={() => handleSave(college.id)}
+                    className="mb-3 w-full rounded-xl border border-slate-700 px-4 py-3 text-center font-semibold transition hover:border-blue-500 hover:text-blue-300"
+                  >
+                    {savedCollegeIds.includes(college.id) ? "Saved" : "Save"}
+                  </button>
+
                   <Link
                     href={`/colleges/${college.id}`}
                     className="block rounded-xl bg-blue-600 px-4 py-3 text-center font-semibold transition hover:bg-blue-500"
@@ -381,7 +549,7 @@ export default function Home() {
           </div>
         )}
 
-        
+
       </section>
     </main >
   );

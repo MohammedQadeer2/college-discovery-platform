@@ -282,11 +282,11 @@ export default function Home() {
           {/* Website name */}
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
-              College<span className="text-blue-400">Finder</span>
+              Campus<span className="text-blue-400">Compare</span>
             </h1>
 
             <p className="text-sm text-slate-400">
-              Discover the right college for you
+              Discover and compare the right college for you
             </p>
           </div>
 

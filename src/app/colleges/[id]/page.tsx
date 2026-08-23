@@ -260,7 +260,7 @@ export default function CollegeDetailsPage() {
             onClick={() => router.push("/")}
             className="text-2xl font-bold"
           >
-            College<span className="text-blue-400">Finder</span>
+            Campus<span className="text-blue-400">Compare</span>
           </button>
 
           {/* Back button */}

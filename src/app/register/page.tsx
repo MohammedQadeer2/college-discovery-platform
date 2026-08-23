@@ -94,12 +94,12 @@ export default function RegisterPage() {
         <div className="mx-auto max-w-7xl px-6 py-5">
           {/* Website name */}
           <h1 className="text-2xl font-bold tracking-tight">
-            College<span className="text-blue-400">Finder</span>
+            Campus<span className="text-blue-400">Compare</span>
           </h1>
 
           {/* Website subtitle */}
           <p className="text-sm text-slate-400">
-            Discover the right college for you
+            Discover and compare the right college for you
           </p>
         </div>
       </header>
@@ -117,7 +117,7 @@ export default function RegisterPage() {
               </p>
 
               <h2 className="text-3xl font-bold">
-                Join CollegeFinder
+                Join CampusCompare
               </h2>
 
               <p className="mt-2 text-slate-400">

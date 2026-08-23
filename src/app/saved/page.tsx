@@ -94,10 +94,10 @@ export default function SavedPage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
           <div>
             <Link href="/" className="text-2xl font-bold tracking-tight">
-              College<span className="text-blue-400">Finder</span>
+              Campus<span className="text-blue-400">Compare</span>
             </Link>
             <p className="text-sm text-slate-400">
-              Discover the right college for you
+              Discover and compare the right college for you
             </p>
           </div>
 
